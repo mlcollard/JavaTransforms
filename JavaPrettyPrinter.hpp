@@ -33,10 +33,6 @@ public:
     }
 
     void newline() {
-        // prevent EOL whitespace
-        while (pretty.back() == ' ')
-            pretty.pop_back();
-
         pretty += "\n";
     }
 
