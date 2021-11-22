@@ -9,6 +9,7 @@
 #include "JavaLexer.h"
 #include "JavaParser.h"
 #include "JavaTransform.hpp"
+#include "JavaPrettyPrinter.hpp"
 
 int main(int argc, char* argv[]) {
 
@@ -26,7 +27,7 @@ int main(int argc, char* argv[]) {
     parser.setTrace(false);
 
     antlr4::tree::ParseTreeWalker walker;
-    JavaTransform transform;
+    JavaPrettyPrinter transform;
     walker.walk(&transform, tree);
 
     return 0;
