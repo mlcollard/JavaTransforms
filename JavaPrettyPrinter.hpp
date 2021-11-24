@@ -8,68 +8,148 @@
 #define INCLUDED_JAVAPRETTYPRINTER_HPP
 
 #include "JavaListenerBlock.h"
-#include <unordered_map>
+#include <unordered_set>
 #include <string>
 
 class  JavaPrettyPrinter : public JavaListener {
 private:
 
-    // pretty form of code
+    // entire output
     std::string pretty;
 
     // level of indent
     int indentationLevel = 1;
 
     // indentation string
-    std::string indentation = "    ";
+    const std::string indentation = "    ";
 
-public:
+    // previous statement was a block
+    bool prevBlock = false;
 
-    virtual void enterMain(JavaParser::MainContext *ctx) override {
-    }
-
-    virtual void exitMain(JavaParser::MainContext *ctx) override {
-        std::cout << pretty;
-    }
-
+    // generate a newline, removing any spaces first
     void newline() {
+        if (pretty.back() == ' ' || pretty.back() == '\t')
+            pretty.pop_back();
+
         pretty += "\n";
     }
 
     // indent according to the current indentation level
     void indent() {
-
         newline();
         for (int i = 0; i < indentationLevel; ++i)
             pretty += indentation;
     }
 
-    virtual void enterStatement(JavaParser::StatementContext * ctx) override {
+public:
+    void enterMain(JavaParser::MainContext* /* ctx */) override {}
+
+    void exitMain(JavaParser::MainContext* /* ctx */) override { 
+
+        // fix newline missing at EOF
+        if (pretty.back() != '\n')
+            pretty += "\n";
+
+        // output the entire pretty-printed program
+        std::cout << pretty;
     }
 
-    virtual void exitStatement(JavaParser::StatementContext * /*ctx*/) override {
+    void enterNonblock(JavaParser::NonblockContext* /* ctx */) override {
+
+        // // block statements handle their own indentation
+        // if (ctx->start->getType() == JavaParser::LCURLY)
+        //     return;
+
+        // indent the statement and raise the indentation level for nested statements
+        indent();
+        ++indentationLevel;
     }
 
-    virtual void enterElse_stmt(JavaParser::Else_stmtContext *ctx) override {
+    void exitNonblock(JavaParser::NonblockContext* /* ctx */) override {
+
+        // reduce the indentation for all statements
+        --indentationLevel;
     }
 
-    virtual void enterBlock(JavaParser::BlockContext *ctx) override {
+    void enterIf_stmt(JavaParser::If_stmtContext* /* ctx */) override {
+        prevBlock = false;
     }
 
-    virtual void exitBlock(JavaParser::BlockContext *ctx) override {
+    void exitIf_stmt(JavaParser::If_stmtContext* /* ctx */) override { 
+        prevBlock = false;
     }
 
-    virtual void visitTerminal(antlr4::tree::TerminalNode *node) override {
+    void enterElse_stmt(JavaParser::Else_stmtContext *ctx) override {
+        if (prevBlock) {
+            prevBlock = false;
+            return;
+        }
+
+        --indentationLevel;
+        indent();
+        ++indentationLevel;
+    }
+
+    void enterElse_if_stmt(JavaParser::Else_if_stmtContext * /*ctx*/) override { 
+        if (prevBlock) {
+            prevBlock = false;
+            return;
+        }
+
+        --indentationLevel;
+        indent();
+        ++indentationLevel;
+    }
+
+    void exitElse_if_stmt(JavaParser::Else_if_stmtContext * /*ctx*/) override {}
+
+    void enterBlock(JavaParser::BlockContext *ctx) override {}
+
+    void exitBlock(JavaParser::BlockContext *ctx) override {}
+
+    void enterBlock_end(JavaParser::Block_endContext *ctx) override {
+        --indentationLevel;
+        indent();
+    }
+
+    void exitBlock_end(JavaParser::Block_endContext *ctx) override {
+        ++indentationLevel;
+        prevBlock = true;
+    }
+
+    void visitTerminal(antlr4::tree::TerminalNode *node) override {
+
+        // Symbols with no space before them
+        static const std::unordered_set<int> noBeforeSpace{
+            JavaParser::RPAREN,         // ")"
+            JavaParser::SEMICOLON,      // ";"
+        };
+
+        // Symbols with no space after them
+        static const std::unordered_set<int> noAfterSpace{
+            JavaParser::LPAREN,         // "("
+            JavaParser::SEMICOLON,      // ";"
+            JavaParser::LCURLY,         // "{"
+        };
+
+        // space before except for members of noBeforeSpace
+        if (noBeforeSpace.find(node->getSymbol()->getType()) != noBeforeSpace.end()
+            && pretty.back() == ' ')
+            pretty.pop_back();
 
         pretty += node->getSymbol()->getText();
+        
+        // space after except for members of noAfterSpace
+        if (noAfterSpace.find(node->getSymbol()->getType()) != noAfterSpace.end())
+            return;
         pretty += " ";
     }
 
-    virtual void visitErrorNode(antlr4::tree::ErrorNode *node) override {}
+    void visitErrorNode(antlr4::tree::ErrorNode *node) override {}
 
-    virtual void enterEveryRule(antlr4::ParserRuleContext *ctx) override {}
+    void enterEveryRule(antlr4::ParserRuleContext *ctx) override {}
 
-    virtual void exitEveryRule(antlr4::ParserRuleContext *ctx) override {}
+    void exitEveryRule(antlr4::ParserRuleContext *ctx) override {}
 };
 
 #endif

@@ -7,7 +7,9 @@ options {
 
 main : (statement)* ;
 
-statement : /* for_stmt | */ declaration | return_stmt | while_stmt | if_stmt | else_stmt | expr_stmt | do_stmt | break_stmt |
+statement : block | nonblock ;
+
+nonblock : /* for_stmt | */ declaration | return_stmt | while_stmt | if_stmt /*| else_if_stmt | else_stmt */ | expr_stmt | do_stmt | break_stmt |
             continue_stmt | block | empty_stmt | goto_stmt | try_stmt | finally_stmt | synchronized_stmt ;
 
 declaration : /* class_decl | */ function | function_decl | import_stmt | package_stmt | static_block | specifier ;
@@ -46,9 +48,11 @@ while_stmt : WHILE condition statement ;
 
 condition: LPAREN (expr)* RPAREN ;
 
-if_stmt : IF LPAREN (expr)* RPAREN statement ;
+if_stmt : IF LPAREN (expr)* RPAREN statement (else_if_stmt)* (else_stmt)*;
 
 else_stmt : ELSE statement ;
+
+else_if_stmt : ELSE IF condition statement ;
 
 expr_stmt : expr stmt_end ;
 
@@ -56,7 +60,9 @@ name : NAME (DOT NAME)* (DOT)? ;
 
 call : name LPAREN (expr | COMMA)? RPAREN ;
 
-block : LCURLY (statement)* RCURLY ;
+block : LCURLY (statement)* block_end ;
+
+block_end : RCURLY ;
 
 expr : (name | NUMBER | STRING | operators | call | LPAREN (expr)* RPAREN)+ ;
 
@@ -69,4 +75,3 @@ catch_stmt : CATCH (LPAREN (expr)* RPAREN)? block ;
 finally_stmt : FINALLY (LPAREN (expr)* RPAREN)? block ;
 
 do_stmt : DO statement WHILE LPAREN (expr)? RPAREN stmt_end ;
-

@@ -16,9 +16,20 @@ private:
     std::unordered_map<int, std::string> map{
         { JavaParser::RuleWhile_stmt, "while"},
         { JavaParser::RuleCondition, "condition"},
+        { JavaParser::RuleName, "name"},
     };
 
 public:
+
+    virtual void enterMain(JavaParser::MainContext * /*ctx*/) {
+
+        std::cout << R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<unit xmlns="https://mlcollard.net/mcollard">)";
+    }
+    
+    virtual void exitMain(JavaParser::MainContext * /*ctx*/) {
+        std::cout << "</unit>\n";
+    }
 
     virtual void enterWhile_stmt(JavaParser::While_stmtContext *ctx) {
     }
