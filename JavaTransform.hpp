@@ -7,16 +7,17 @@
 #ifndef INCLUDED_JAVATRANSFORM_HPP
 #define INCLUDED_JAVATRANSFORM_HPP
 
-#include "JavaListenerBlock.h"
+#include "JavaBaseListener.h"
 #include <unordered_map>
 #include <string>
 
-class  JavaTransform : public JavaListener {
+class  JavaTransform : public JavaBaseListener {
 private:
     std::unordered_map<int, std::string> map{
         { JavaParser::RuleWhile_stmt, "while"},
         { JavaParser::RuleCondition, "condition"},
         { JavaParser::RuleName, "name"},
+
     };
 
 public:
