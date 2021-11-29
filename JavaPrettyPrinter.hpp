@@ -7,11 +7,11 @@
 #ifndef INCLUDED_JAVAPRETTYPRINTER_HPP
 #define INCLUDED_JAVAPRETTYPRINTER_HPP
 
-#include "JavaListenerBlock.h"
+#include "JavaBaseListener.h"
 #include <unordered_set>
 #include <string>
 
-class  JavaPrettyPrinter : public JavaListener {
+class  JavaPrettyPrinter : public JavaBaseListener {
 private:
 
     // entire output
