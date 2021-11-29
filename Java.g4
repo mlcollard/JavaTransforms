@@ -7,10 +7,8 @@ options {
 
 main : (statement)* ;
 
-statement : block | nonblock ;
-
-nonblock : /* for_stmt | */ declaration | return_stmt | while_stmt | if_stmt /*| else_if_stmt | else_stmt */ | expr_stmt | do_stmt | break_stmt |
-            continue_stmt | block | empty_stmt | goto_stmt | try_stmt | finally_stmt | synchronized_stmt ;
+statement : block #noindent | /* for_stmt #nonnested| */ declaration #nonnested| return_stmt #nonnested| while_stmt #nested| if_stmt /*| else_if_stmt #nonnested| else_stmt */ #nested| expr_stmt #nonnested| do_stmt #nested| break_stmt #nonnested|
+            continue_stmt #nonnested| empty_stmt #nonnested| goto_stmt #nonnested| try_stmt #nonnested| finally_stmt #nonnested| synchronized_stmt #nonnested;
 
 declaration : /* class_decl | */ function | function_decl | import_stmt | package_stmt | static_block | specifier ;
 

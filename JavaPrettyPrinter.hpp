@@ -54,7 +54,7 @@ public:
         std::cout << pretty;
     }
 
-    void enterNonblock(JavaParser::NonblockContext* /* ctx */) override {
+    void enterNested(JavaParser::NestedContext* /* ctx */) override {
 
         // // block statements handle their own indentation
         // if (ctx->start->getType() == JavaParser::LCURLY)
@@ -65,10 +65,16 @@ public:
         ++indentationLevel;
     }
 
-    void exitNonblock(JavaParser::NonblockContext* /* ctx */) override {
+    void exitNested(JavaParser::NestedContext* /* ctx */) override {
 
         // reduce the indentation for all statements
         --indentationLevel;
+    }
+
+    void enterNonnested(JavaParser::NonnestedContext* /* ctx */) override {
+
+        // indent the statement
+        indent();
     }
 
     void enterIf_stmt(JavaParser::If_stmtContext* /* ctx */) override {
