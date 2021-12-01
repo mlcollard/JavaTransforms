@@ -24,7 +24,7 @@ private:
     const std::string indentation = "    ";
 
     // previous statement was a block
-    bool prevBlock = false;
+    // bool prevBlock = false;
 
     // generate a newline, removing any spaces first
     void newline() {
@@ -72,16 +72,16 @@ public:
     }
 
     void enterIf_stmt(JavaParser::If_stmtContext* /* ctx */) override {
-        prevBlock = false;
+        // prevBlock = false;
     }
 
     void exitIf_stmt(JavaParser::If_stmtContext* /* ctx */) override { 
-        prevBlock = false;
+        // prevBlock = false;
     }
 
-    void enterElse_stmt(JavaParser::Else_stmtContext *ctx) override {
-        if (prevBlock) {
-            prevBlock = false;
+    void enterElse_stmt(JavaParser::Else_stmtContext* ctx) override {
+
+        if (ctx->prevBlock) {
             return;
         }
 
@@ -90,9 +90,9 @@ public:
         ++indentationLevel;
     }
 
-    void enterElse_if_stmt(JavaParser::Else_if_stmtContext * /*ctx*/) override { 
-        if (prevBlock) {
-            prevBlock = false;
+    void enterElse_if_stmt(JavaParser::Else_if_stmtContext* ctx) override { 
+
+        if (ctx->prevBlock) {
             return;
         }
 
@@ -114,7 +114,7 @@ public:
 
     void exitBlock_end(JavaParser::Block_endContext *ctx) override {
         ++indentationLevel;
-        prevBlock = true;
+        // prevBlock = true;
     }
 
     void visitTerminal(antlr4::tree::TerminalNode *node) override {

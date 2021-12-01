@@ -7,7 +7,7 @@ options {
 
 main : (statement)* ;
 
-statement : block | nonblock ;
+statement returns [bool prevBlock] : block { $prevBlock = true; } | nonblock { $prevBlock = false; } ;
 
 nonblock : /* for_stmt | */ declaration | return_stmt | while_stmt | if_stmt /*| else_if_stmt | else_stmt */ | expr_stmt | do_stmt | break_stmt |
             continue_stmt | block | empty_stmt | goto_stmt | try_stmt | finally_stmt | synchronized_stmt ;
@@ -48,11 +48,11 @@ while_stmt : WHILE condition statement ;
 
 condition: LPAREN (expr)* RPAREN ;
 
-if_stmt : IF LPAREN (expr)* RPAREN statement (else_if_stmt)* (else_stmt)*;
+if_stmt : IF LPAREN (expr)* RPAREN v=statement (else_if_stmt[$v.prevBlock])* (else_stmt[$v.prevBlock])*;
 
-else_stmt : ELSE statement ;
+else_stmt[bool prevBlock = false] : ELSE statement ;
 
-else_if_stmt : ELSE IF condition statement ;
+else_if_stmt[bool prevBlock = false] : ELSE IF condition v=statement { $prevBlock = $v.prevBlock; };
 
 expr_stmt : expr stmt_end ;
 
