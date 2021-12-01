@@ -12,7 +12,17 @@
 #include <string>
 
 class  JavaPrettyPrinter : public JavaBaseListener {
+public:
+
+    // constructor
+    JavaPrettyPrinter(antlr4::Parser* parser)
+        : parser(parser)
+    {}
+
 private:
+
+    // parser
+    antlr4::Parser* parser = nullptr;
 
     // entire output
     std::string pretty;
@@ -22,9 +32,6 @@ private:
 
     // indentation string
     const std::string indentation = "    ";
-
-    // previous statement was a block
-    bool prevBlock = false;
 
     // generate a newline, removing any spaces first
     void newline() {
@@ -71,17 +78,24 @@ public:
         --indentationLevel;
     }
 
-    void enterIf_stmt(JavaParser::If_stmtContext* /* ctx */) override {
-        prevBlock = false;
-    }
-
-    void exitIf_stmt(JavaParser::If_stmtContext* /* ctx */) override { 
-        prevBlock = false;
-    }
-
     void enterElse_stmt(JavaParser::Else_stmtContext *ctx) override {
-        if (prevBlock) {
-            prevBlock = false;
+
+        enterElses(ctx);
+    }
+
+    void enterElses(antlr4::ParserRuleContext* ctx) {
+
+        // find the first previous token in the same channel
+        const auto stream = parser->getTokenStream();
+        const auto channel = ctx->getStart()->getChannel();
+        int pos = ctx->getStart()->getTokenIndex() - 1;
+        while (pos > 0 && stream->get(pos)->getChannel() != channel) {
+            --pos;
+        }
+        auto prevToken = stream->get(pos);
+
+        // if the previous token is the end of a block, then no indentation
+        if (prevToken->getType() == JavaParser::RCURLY) {
             return;
         }
 
@@ -90,22 +104,12 @@ public:
         ++indentationLevel;
     }
 
-    void enterElse_if_stmt(JavaParser::Else_if_stmtContext * /*ctx*/) override { 
-        if (prevBlock) {
-            prevBlock = false;
-            return;
-        }
+    void enterElse_if_stmt(JavaParser::Else_if_stmtContext* ctx) override { 
 
-        --indentationLevel;
-        indent();
-        ++indentationLevel;
+        enterElses(ctx);
     }
 
     void exitElse_if_stmt(JavaParser::Else_if_stmtContext * /*ctx*/) override {}
-
-    void enterBlock(JavaParser::BlockContext *ctx) override {}
-
-    void exitBlock(JavaParser::BlockContext *ctx) override {}
 
     void enterBlock_end(JavaParser::Block_endContext *ctx) override {
         --indentationLevel;
@@ -114,7 +118,6 @@ public:
 
     void exitBlock_end(JavaParser::Block_endContext *ctx) override {
         ++indentationLevel;
-        prevBlock = true;
     }
 
     void visitTerminal(antlr4::tree::TerminalNode *node) override {
